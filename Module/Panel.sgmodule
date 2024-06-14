@@ -39,7 +39,7 @@ CFGPT = type=generic,timeout=6,script-path=https://raw.githubusercontent.com/Gia
 FlushDNS = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Module/Panel/Flush-DNS/Moore/Flush-DNS.js,argument=title=DNS刷新&icon=dial.min.fill&color=#FFD700&server=false
 
 # 4.配置重载
-配置重载 = script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/Profile-Reload.js,type=generic
+配置重载 = script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/Module/Profile-Reload.js,type=generic
 
 # 5.流量统计
 #应当修改的字段：network : en0→WiFi pdp_ip0→卡1 pdp_ip1→卡2
