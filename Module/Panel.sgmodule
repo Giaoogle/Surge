@@ -1,0 +1,88 @@
+
+#!name=☁️ Panel
+#!desc=Panel模块
+#!system=ios
+
+[Panel]
+#NetSpeedtest
+NetSpeed = script-name=NetSpeed,update-interval=-1
+
+#ChatGPT
+CFGPT = script-name=CFGPT,update-interval=-1
+
+#DNS刷新
+FlushDNS = script-name=FlushDNS,update-interval=600
+
+#配置重载
+配置重载 = title=配置重载,content=配置重载,style=info,script-name=配置重载,update-interval=-1
+
+#流量统计
+TrafficStatistics = script-name=TrafficStatistics,update-interval=1
+
+
+
+#网路信息
+NetInfoPanel=title="",content="",style=info,script-name=net-info-panel.js,update-interval=1
+
+
+#YouTube Premium解锁检测
+#YouTube_check = script-name=YouTube_check, title=YouTube 解锁检测, content=请刷新, update-interval=36000
+
+#Netflix检测
+#nf_check = script-name=nf_check, title=nf+ 解锁检测, content=请刷新, update-interval=36000
+
+#Disney检测
+#groupPanel= script-name=groupPanel,update-interval=5
+
+
+
+
+[Script]
+#NetSpeedtest
+NetSpeed = type=generic,script-path=https://raw.githubusercontent.com/getsomecat/GetSomeCats/Surge/modules/Panel/Net_Speed/Net_Speed.js,argument=title=NetSpeed&iconfast=bolt&iconmid=hare&iconslow=tortoise&colorlow=#06D6A0&colormid=#FFD166&colorhigh=#EF476F&mb=3
+
+#网路信息
+net-info-panel.js=script-path=https://raw.githubusercontent.com/getsomecat/GetSomeCats/Surge/modules/Panel/Network-Info/Moore/net-info-panel_CN.js,type=generic,timeout=30
+
+#ChatGPT
+CFGPT = type=generic,timeout=6,script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/CFGPT.js,argument=icon=slowmo&icon-color=	#FFA500
+
+
+#DNS刷新
+FlushDNS = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Module/Panel/Flush-DNS/Moore/Flush-DNS.js,argument=title=DNS刷新&icon=dial.min.fill&color=#FFD700&server=false
+
+
+#流量统计
+#应当修改的字段：network : en0→WiFi pdp_ip0→卡1 pdp_ip1→卡2
+TrafficStatistics = type=generic,timeout=10,script-path= https://raw.githubusercontent.com/fishingworld/something/main/PanelScripts/trafficstatistics.js,argument=icon=externaldrive.badge.icloud&color=#1E90FF&network=https://fufucat.xyz/api/v1/client/subscribe?token=556270fe70d1e311903a983bb61a452a
+
+
+#配置重载
+配置重载 = script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/Profile-Reload.js,type=generic
+
+
+
+#YouTube Premium解锁检测
+#YouTube_check = type=generic,timeout=5,script-path=https://gist.githubusercontent.com/Hyseen/5ae36a6a5cb5690b1f2bff4aa19c766f/raw/youtube_premium_check.js
+
+
+#Netflix检测
+#nf_check = type=generic,timeout=5,script-path=https://gist.githubusercontent.com/Hyseen/b06e911a41036ebc36acf04ddebe7b9a/raw/nf_check.js
+
+
+#Disney检测
+#必须更改的字段：group 填写需要显示的策略组名称
+# = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/fishingworld/something/main/groupPanel.js ,argument=icon=4k.tv&color=#00ad45&group=𝗣𝗼𝗻𝘁𝗲
+
+
+
+
+[MITM]
+hostname = %APPEND% api.cloudflareclient.com, zero-trust-client.cloudflareclient.com
+
+[Host]
+
+#网路信息
+ip-api.com = 208.95.112.1
+
+
