@@ -24,13 +24,13 @@ NetInfoPanel=title="",content="",style=info,script-name=net-info-panel.js,update
 
 
 # 7.YouTube Premium解锁检测
-#YouTube_check = script-name=YouTube_check, title=YouTube 解锁检测, content=请刷新, update-interval=36000
+YouTube_check = script-name=YouTube_check, title=YouTube 解锁检测, content=请刷新, update-interval=36000
 
 # 8.Netflix检测
-#nf_check = script-name=nf_check, title=nf+ 解锁检测, content=请刷新, update-interval=36000
+nf_check = script-name=nf_check, title=nf+ 解锁检测, content=请刷新, update-interval=36000
 
 # 9.Disney检测
-#groupPanel= script-name=groupPanel,update-interval=5
+groupPanel= script-name=groupPanel,update-interval=5
 
 
 
