@@ -33,7 +33,7 @@ NetInfoPanel=title="",content="",style=info,script-name=net-info-panel.js,update
 NetSpeed = type=generic,script-path=https://raw.githubusercontent.com/getsomecat/GetSomeCats/Surge/modules/Panel/Net_Speed/Net_Speed.js,argument=title=NetSpeed&iconfast=bolt&iconmid=hare&iconslow=tortoise&colorlow=#06D6A0&colormid=#FFD166&colorhigh=#EF476F&mb=3
 
 # 2.ChatGPT
-CFGPT = type=generic,timeout=6,script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/CFGPT.js,argument=icon=slowmo&icon-color=	#FFA500
+CFGPT = type=generic,timeout=6,script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/Module/CFGPT.js,argument=icon=slowmo&icon-color=	#FFA500
 
 # 3.DNS刷新
 FlushDNS = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/Rabbit-Spec/Surge/Master/Module/Panel/Flush-DNS/Moore/Flush-DNS.js,argument=title=DNS刷新&icon=dial.min.fill&color=#FFD700&server=false
