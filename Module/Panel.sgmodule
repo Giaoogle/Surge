@@ -64,7 +64,7 @@ nf_check = type=generic,timeout=5,script-path=https://gist.githubusercontent.com
 
 # 9.Disney检测
 #必须更改的字段：group 填写需要显示的策略组名称
-groupPanel = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/fishingworld/something/main/groupPanel.js ,argument=icon=4k.tv&color=#00ad45&group=𝗣𝗼𝗻𝘁𝗲
+groupPanel = type=generic,timeout=10,script-path=https://raw.githubusercontent.com/fishingworld/something/main/groupPanel.js ,argument=icon=4k.tv&color=#00ad45&group=𝗦𝗺𝗮𝗿𝘁
 
 
 
