@@ -8,6 +8,10 @@
 # USER-AGENT: 2
 # TOTAL: 49
 DOMAIN,wmff.warnermediacdn.com
+DOMAIN-SUFFIX,api.max.com
+DOMAIN-SUFFIX,busy.any-any.prd.api.discomax.com
+DOMAIN-SUFFIX,cf.asia.prd.media.max.com
+DOMAIN-SUFFIX,play.max.com
 DOMAIN-SUFFIX,bcbolthboa-a.akamaihd.net
 DOMAIN-SUFFIX,cf-images.ap-southeast-1.prod.boltdns.net
 DOMAIN-SUFFIX,cinemax.com
