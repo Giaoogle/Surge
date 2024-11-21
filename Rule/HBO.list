@@ -1,66 +1,9 @@
 # NAME: HBO
-# AUTHOR: Giaohub
-# REPO: https://github.com/
-# UPDATED: 2024-11-21 16:16:13
-# DOMAIN: 1
-# DOMAIN-SUFFIX: 45
-# PROCESS-NAME: 1
-# USER-AGENT: 2
-# TOTAL: 49
-DOMAIN,wmff.warnermediacdn.com
-DOMAIN-SUFFIX,max.com
-DOMAIN-SUFFIX,discomax.com
-DOMAIN-SUFFIX,akm.asia.prd.media.max.com
-DOMAIN-SUFFIX,images.cdn.prd.api.discomax.com
-DOMAIN-SUFFIX,api.max.com
-DOMAIN-SUFFIX,busy.any-any.prd.api.discomax.com
-DOMAIN-SUFFIX,cf.asia.prd.media.max.com
-DOMAIN-SUFFIX,play.max.com
-DOMAIN-SUFFIX,bcbolthboa-a.akamaihd.net
-DOMAIN-SUFFIX,cf-images.ap-southeast-1.prod.boltdns.net
-DOMAIN-SUFFIX,cinemax.com
-DOMAIN-SUFFIX,dai3fd1oh325y.cloudfront.net
-DOMAIN-SUFFIX,execute-api.ap-southeast-1.amazonaws.com
-DOMAIN-SUFFIX,execute-api.us-east-1.amazonaws.com
-DOMAIN-SUFFIX,forthethrone.com
-DOMAIN-SUFFIX,hbo.com
-DOMAIN-SUFFIX,hbo.com.c.footprint.net
-DOMAIN-SUFFIX,hbo.com.edgesuite.net
-DOMAIN-SUFFIX,hbo.map.fastly.net
-DOMAIN-SUFFIX,hboasia.com
-DOMAIN-SUFFIX,hboasia1-i.akamaihd.net
-DOMAIN-SUFFIX,hboasia2-i.akamaihd.net
-DOMAIN-SUFFIX,hboasia3-i.akamaihd.net
-DOMAIN-SUFFIX,hboasia4-i.akamaihd.net
-DOMAIN-SUFFIX,hboasia5-i.akamaihd.net
-DOMAIN-SUFFIX,hboasialive.akamaized.net
-DOMAIN-SUFFIX,hbogeo.cust.footprint.net
-DOMAIN-SUFFIX,hbogo.co.th
-DOMAIN-SUFFIX,hbogo.com
-DOMAIN-SUFFIX,hbogo.eu
-DOMAIN-SUFFIX,hbogoasia.com
-DOMAIN-SUFFIX,hbogoasia.hk
-DOMAIN-SUFFIX,hbogoasia.id
-DOMAIN-SUFFIX,hbogoasia.ph
-DOMAIN-SUFFIX,hbogoasia.sg
-DOMAIN-SUFFIX,hbogoasia.tw
-DOMAIN-SUFFIX,hbogoprod-vod.akamaized.net
-DOMAIN-SUFFIX,hbolb.onwardsmg.com
-DOMAIN-SUFFIX,hbomax.com
-DOMAIN-SUFFIX,hbomaxcdn.com
-DOMAIN-SUFFIX,hbomaxdash.s.llnwi.net
-DOMAIN-SUFFIX,hbonow.com
-DOMAIN-SUFFIX,hbounify-prod.evergent.com
-DOMAIN-SUFFIX,manifest.prod.boltdns.net
-DOMAIN-SUFFIX,maxgo.com
-DOMAIN-SUFFIX,now-ashare.com
-DOMAIN-SUFFIX,now-tv.com
-DOMAIN-SUFFIX,now.com
-DOMAIN-SUFFIX,now.com.hk
-DOMAIN-SUFFIX,nowe.com
-DOMAIN-SUFFIX,nowe.hk
-DOMAIN-SUFFIX,players.brightcove.net
-DOMAIN-SUFFIX,youboranqs01.com
+# 数量：7条
 USER-AGENT,HBO%20NOW*
 USER-AGENT,HBOMAX*
-PROCESS-NAME,com.hbo.hbonow
+DOMAIN-SUFFIX,hbo.com
+DOMAIN-SUFFIX,hbogo.com
+DOMAIN-SUFFIX,hbomax.com
+DOMAIN-SUFFIX,hbomaxcdn.com
+DOMAIN-SUFFIX,hbonow.com
