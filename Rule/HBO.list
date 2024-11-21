@@ -8,6 +8,7 @@
 # USER-AGENT: 2
 # TOTAL: 49
 DOMAIN,wmff.warnermediacdn.com
+DOMAIN-SUFFIX,akm.asia.prd.media.max.com
 DOMAIN-SUFFIX,images.cdn.prd.api.discomax.com
 DOMAIN-SUFFIX,api.max.com
 DOMAIN-SUFFIX,busy.any-any.prd.api.discomax.com
