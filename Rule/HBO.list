@@ -7,6 +7,14 @@
 # PROCESS-NAME: 1
 # USER-AGENT: 2
 # TOTAL: 49
+DOMAIN-SUFFIX,discomax.com
+DOMAIN-SUFFIX,gcp.asia.prd.media.max.com
+DOMAIN-SUFFIX,max.com
+DOMAIN-SUFFIX,litix.io
+DOMAIN-SUFFIX,apptentive.com
+DOMAIN-SUFFIX,brightline.tv
+
+
 DOMAIN,wmff.warnermediacdn.com
 DOMAIN-SUFFIX,bcbolthboa-a.akamaihd.net
 DOMAIN-SUFFIX,cf-images.ap-southeast-1.prod.boltdns.net
