@@ -10,6 +10,8 @@ DOMAIN-SUFFIX,guzzoni.apple.com
 DOMAIN-SUFFIX,aaplimg.com
 DOMAIN,seed.siri.apple.com
 DOMAIN,apple-relay.apple.com
-DOMAIN,seed-probe.siri.apple.com
-DOMAIN,sandbox.itunes.apple.com
 DOMAIN,mask-api.icloud.com
+DOMAIN,gateway.icloud.com
+DOMAIN,mask-api.icloud.com
+DOMAIN,configuration.ls.apple.com
+DOMAIN,guzzoni.smoot.apple.com
