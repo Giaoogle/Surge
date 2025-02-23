@@ -11,3 +11,5 @@ DOMAIN-SUFFIX,aaplimg.com
 DOMAIN,seed.siri.apple.com
 DOMAIN,apple-relay.apple.com
 DOMAIN,seed-probe.siri.apple.com
+DOMAIN,sandbox.itunes.apple.com
+DOMAIN,mask-api.icloud.com
