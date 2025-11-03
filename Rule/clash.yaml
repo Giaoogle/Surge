@@ -17,7 +17,7 @@ use: &use
 proxy-providers:
   provider1:
     <<: *p
-    url: "https://fm-sub-mainpanel-vygijfogpm.cn-shanghai.fcapp.run/game/CheckUserInfo?token=811fdc1208da1ec64ce658015a2ead84"
+    url: https://fm-sub-mainpanel-vygijfogpm.cn-shanghai.fcapp.run/game/CheckUserInfo?token=811fdc1208da1ec64ce658015a2ead84
     path: ./proxy_providers/provider1.yaml
 
   provider2:
