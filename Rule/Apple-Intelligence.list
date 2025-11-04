@@ -15,3 +15,7 @@ DOMAIN,gateway.icloud.com
 DOMAIN,mask-api.icloud.com
 DOMAIN,configuration.ls.apple.com
 DOMAIN,guzzoni.smoot.apple.com
+DOMAIN,cp4.cloudflare.com
+DOMAIN,apple-relay.fastly-edge.com
+DOMAIN,apple-relay.cloudflare.com
+DOMAIN-SUFFIX,smoot.apple.com
