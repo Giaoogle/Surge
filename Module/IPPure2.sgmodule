@@ -9,7 +9,7 @@
 DOMAIN-SUFFIX,ippure.com,{{{Proxy}}}
 
 [Panel]
-IP-Pure = script-name=IP-Pure, title=IP 纯净度, content=刷新中…, style=info, update-interval=300
+IPPure = script-name=IP-Pure, title=IP 纯净度, content=刷新中…, style=info, update-interval=300
 
 [Script]
-IP-Pure = type=generic, timeout=10, argument={{{MarkIP}}}, script-path=https://raw.githubusercontent.com/Giaoogle/Surge/refs/heads/main/Module/IPPure.js
+IPPure = type=generic, timeout=10, argument={{{MarkIP}}}, script-path=https://raw.githubusercontent.com/Giaoogle/Surge/refs/heads/main/Module/IPPure.js
