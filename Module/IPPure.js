@@ -1,112 +1,116 @@
 /*
- * 脚本名称：IPPure 深度检测 (修复版)
- * 脚本作者：Giaoogle (优化版)
- * 功能：还原 ippure.com 网页视觉体验，修复 JSON 解析错误
+ * 脚本名称：IP 深度检测 (高仿 IPPure 视觉版)
+ * 数据来源：ip-api.com (稳定/无墙/无盾)
+ * 脚本作者：Likhixang (优化版)
+ * 功能：还原 IPPure 网页视觉体验，自动计算风险评分
  */
 
-const url = "https://ippure.com/json";
+// 使用 ip-api，请求特定的字段以减少流量
+const url = "http://ip-api.com/json/?fields=status,message,country,countryCode,regionName,city,isp,org,as,mobile,proxy,hosting,query";
 
-// 关键修复：添加伪装头，模拟 iPhone 浏览器访问，避免被 Cloudflare 拦截
-const headers = {
-    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-    "Accept": "application/json, text/plain, */*",
-    "Referer": "https://ippure.com/",
-    "Origin": "https://ippure.com"
-};
-
-$httpClient.get({ url: url, headers: headers }, function(error, response, data) {
+$httpClient.get(url, function(error, response, data) {
     if (error) {
-        $done({ title: "检测失败", content: "无法连接服务器，请检查网络", icon: "exclamationmark.triangle", "icon-color": "#FF0000" });
+        $done({ title: "检测失败", content: "网络连接错误", icon: "exclamationmark.triangle", "icon-color": "#FF0000" });
         return;
     }
 
     try {
-        const json = JSON.parse(data);
+        const info = JSON.parse(data);
         
-        // 如果 API 返回的数据里没有 success 字段或为 false
-        if (json.success === false) { 
-             $done({ title: "数据异常", content: "API 请求未成功", icon: "xmark.octagon" });
-             return;
+        if (info.status !== "success") {
+            $done({ title: "查询失败", content: info.message || "API 异常", icon: "xmark.octagon" });
+            return;
         }
 
-        const info = json.data;
+        // --- 1. 基础信息处理 ---
+        const ip = info.query;
+        // 处理 ASN，去除多余的长字符
+        let asn = info.as || info.org || "Unknown";
+        if (asn.length > 30) asn = asn.split(" ")[0] + " " + asn.split(" ")[1]; // 简单缩短
 
-        // --- 数据处理 ---
-        
-        // 1. IP & ASN
-        const ip = info.ip;
-        const asn = info.asn_org || info.asn || "Unknown";
-        
-        // 2. 位置
-        const country = info.country_name || "";
-        const region = info.region || "";
-        const city = info.city || "";
-        // 简单组合位置信息，避免过长
-        const locStr = `${country} ${region}`.trim(); 
-        const flag = getFlagEmoji(info.country_code);
+        const locStr = `${info.country} ${info.regionName} ${info.city}`;
+        const flag = getFlagEmoji(info.countryCode);
 
-        // 3. IP 类型标签
+        // --- 2. 智能类型判断 & 风险模拟 ---
+        // ip-api 不返回 0-100 分数，我们根据属性自己计算，模拟 IPPure 的视觉效果
+        
         let typeTags = [];
-        if (info.type === "residential") typeTags.push("🏠 住宅");
-        else if (info.type === "datacenter") typeTags.push("🏢 数据中心");
-        else typeTags.push("🌐 " + (info.type || "未知"));
+        let riskScore = 0; // 0 是最安全，100 是最危险
+        let pureScore = 100; // 100 是最纯净
 
-        // 尝试判断原生 (根据常见字段猜测，IPPure 可能不直接返回 is_native)
-        // 这里仅作示例，如果没有准确字段可注释掉
-        if (info.is_mobile) typeTags.push("📱 移动");
-        
-        const typeLine = typeTags.join(" | ");
+        if (info.mobile) {
+            typeTags.push("📱 移动网络");
+            typeTags.push("🍃 原生 IP"); // 移动网通常被视为原生
+            riskScore = 0;
+            pureScore = 98;
+        } else if (info.hosting) {
+            typeTags.push("🏢 数据中心");
+            riskScore += 80; // 托管机房通常被视为高风险/非原生
+            pureScore -= 80;
+        } else {
+            typeTags.push("🏠 住宅宽带"); // 既非 mobile 也非 hosting，通常是家宽
+            riskScore += 10;
+            pureScore = 90;
+        }
 
-        // 4. 分数与进度条
-        // 注意：不同 IP 库返回的 key 可能不同，这里防御性读取
-        const ipPureScore = parseInt(info.score || 0); 
-        const cfScore = parseInt(info.cf_score || 0);
+        if (info.proxy) {
+            typeTags.push("🔒 代理节点");
+            riskScore = 99;
+            pureScore = 1;
+        }
 
-        const ipPureBar = renderProgressBar(ipPureScore, true); // 低分绿
-        const cfBar = renderProgressBar(cfScore, false);      // 高分红
+        // 修正分数范围
+        if (riskScore > 100) riskScore = 100;
+        if (pureScore < 0) pureScore = 0;
 
-        // --- 组装面板 ---
-        
-        const title = `${flag} ${ip}`;
+        const typeLine = typeTags.join("  |  ");
+
+        // --- 3. 生成进度条 (视觉核心) ---
+        const ipPureBar = renderProgressBar(pureScore, true); // 越长越好(绿)
+        const riskBar = renderProgressBar(riskScore, false);  // 越长越差(红)
+
+        // --- 4. 组装面板 ---
         
         let content = [];
         content.push(`🏢 ${asn}`);
-        content.push(`📍 ${locStr}  ${city}`);
+        content.push(`📍 ${locStr}`);
         content.push(`🏷️ ${typeLine}`);
-        content.push(``); 
-        content.push(`🛡️ 纯净度: ${ipPureScore}% ${ipPureScore < 20 ? "极好" : "一般"}`);
+        content.push(``); // 视觉空行
+        content.push(`🛡️ IP纯净度:  ${pureScore}% ${pureScore > 80 ? "极度纯净" : "一般"}`);
         content.push(`${ipPureBar}`); 
-        content.push(`☁️ CF风控: ${cfScore}% ${cfScore > 80 ? "危险" : "安全"}`);
-        content.push(`${cfBar}`);
+        content.push(`☁️ 风险指数:  ${riskScore}% ${riskScore > 50 ? "高风险" : "安全"}`);
+        content.push(`${riskBar}`);
+
+        // 动态图标颜色
+        let iconColor = "#26C364"; // 默认绿
+        if (riskScore > 80) iconColor = "#FF3B30"; // 危险红
+        else if (riskScore > 40) iconColor = "#FF9500"; // 警告黄
 
         $done({
-            title: title,
+            title: `${flag} ${ip}`,
             content: content.join("\n"),
             icon: "network.badge.shield.half.filled",
-            "icon-color": ipPureScore < 30 ? "#26C364" : "#FF3B30"
+            "icon-color": iconColor
         });
 
     } catch (e) {
-        // --- 调试日志 ---
-        // 如果再次报错，请在 Surge 日志查看这一行，看看服务器到底返回了什么 HTML
-        console.log("❌ IPPure JSON 解析失败。返回数据片段: " + data.substring(0, 200));
-        
-        $done({ 
-            title: "解析错误", 
-            content: "服务器可能开启了盾(Cloudflare)。\n请查看脚本日志。", 
-            icon: "exclamationmark.triangle" 
-        });
+        $done({ title: "解析错误", content: e.message, icon: "exclamationmark.triangle" });
     }
 });
 
-// --- 辅助函数 ---
+// --- 辅助工具 ---
 
-function renderProgressBar(score, isReverse) {
-    const total = 12; // 稍微缩短一点以防折行
+// 绘制进度条
+// isGoodBar: true(纯净度，满格是好事), false(风险值，满格是坏事)
+function renderProgressBar(score, isGoodBar) {
+    const total = 14; 
     const active = Math.round((score / 100) * total);
     const inactive = total - active;
+    
     const fill = "▓"; 
     const empty = "░";
+    
+    // 视觉上的进度条
     return fill.repeat(active) + empty.repeat(inactive);
 }
 
