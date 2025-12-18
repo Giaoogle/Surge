@@ -1,11 +1,15 @@
-#!name=IPPure Info
-#!desc=显示 IPPure 的详细 IP 风险及属性信息，高仿网页版视觉。
-#!system=ios
+#!name=IP-Pure
+#!desc=节点 IP 纯净度检测（IPPure）,请先在参数内选择策略组。
+#!category=网络检测
+#!arguments=Proxy:DIRECT,MarkIP:false
+#!arguments-desc=Proxy: 选择策略组,默认DIRECT. | MarkIP: IP 打码(true/false),默认 false
 
-[Script]
-# 建议将 update-interval 设长一点（比如 3600s），因为 IP 不会频繁变动，且 API 可能有限制
-IPPure = type=generic, timeout=10, script-path=https://raw.githubusercontent.com/Giaoogle/Surge/refs/heads/main/Module/IPPure.js, argument=
+[Rule]
+# 确保检测请求走选定的代理策略
+DOMAIN-SUFFIX,ippure.com,{{{Proxy}}}
 
 [Panel]
-# Surge iOS 面板配置
-IPPure = script-name=IPPure, title="IP 风险检测", content="刷新中...", update-interval=3600
+IP-Pure = script-name=IP-Pure, title=IP 纯净度, content=刷新中…, style=info, update-interval=300
+
+[Script]
+IP-Pure = type=generic, timeout=10, argument={{{MarkIP}}}, script-path=https://raw.githubusercontent.com/Likhixang/Egerny/refs/heads/main/js/IPPure.js
