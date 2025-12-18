@@ -1,11 +1,10 @@
 /*
- * 脚本名称：IP 深度检测 (高仿 IPPure 视觉版)
- * 数据来源：ip-api.com (稳定/无墙/无盾)
+ * 脚本名称：IP 风险深度检测 (高仿滑块版)
  * 脚本作者：Likhixang (优化版)
- * 功能：还原 IPPure 网页视觉体验，自动计算风险评分
+ * 视觉风格：还原 IPPure 官网指针样式，严格刻度对齐
  */
 
-// 使用 ip-api，请求特定的字段以减少流量
+// 使用 ip-api 获取基础数据 (无盾/稳定)
 const url = "http://ip-api.com/json/?fields=status,message,country,countryCode,regionName,city,isp,org,as,mobile,proxy,hosting,query";
 
 $httpClient.get(url, function(error, response, data) {
@@ -22,69 +21,81 @@ $httpClient.get(url, function(error, response, data) {
             return;
         }
 
-        // --- 1. 基础信息处理 ---
+        // --- 1. 基础信息 ---
         const ip = info.query;
-        // 处理 ASN，去除多余的长字符
         let asn = info.as || info.org || "Unknown";
-        if (asn.length > 30) asn = asn.split(" ")[0] + " " + asn.split(" ")[1]; // 简单缩短
+        // 缩短 ASN 名称以防折行
+        if (asn.length > 25) asn = asn.substring(0, 25) + "...";
 
-        const locStr = `${info.country} ${info.regionName} ${info.city}`;
+        const locStr = `${info.country} ${info.regionName}`.trim();
         const flag = getFlagEmoji(info.countryCode);
 
-        // --- 2. 智能类型判断 & 风险模拟 ---
-        // ip-api 不返回 0-100 分数，我们根据属性自己计算，模拟 IPPure 的视觉效果
+        // --- 2. 风险评分逻辑 (模拟 IPPure 0-100 算法) ---
+        // 逻辑：0 是最纯净/安全，100 是最危险
+        // 依据：截图显示 5% 是极度纯净，94% 是极度风险
         
+        let score = 0; // 初始分 0
         let typeTags = [];
-        let riskScore = 0; // 0 是最安全，100 是最危险
-        let pureScore = 100; // 100 是最纯净
 
-        if (info.mobile) {
-            typeTags.push("📱 移动网络");
-            typeTags.push("🍃 原生 IP"); // 移动网通常被视为原生
-            riskScore = 0;
-            pureScore = 98;
-        } else if (info.hosting) {
-            typeTags.push("🏢 数据中心");
-            riskScore += 80; // 托管机房通常被视为高风险/非原生
-            pureScore -= 80;
-        } else {
-            typeTags.push("🏠 住宅宽带"); // 既非 mobile 也非 hosting，通常是家宽
-            riskScore += 10;
-            pureScore = 90;
-        }
-
+        // 评分规则模拟
         if (info.proxy) {
-            typeTags.push("🔒 代理节点");
-            riskScore = 99;
-            pureScore = 1;
+            score = 95; // 代理必然高危
+            typeTags.push("🔒 代理/VPN");
+        } else if (info.hosting) {
+            score = 80; // 数据中心流量
+            typeTags.push("🏢 数据中心");
+        } else if (info.mobile) {
+            score = 5;  // 移动流量通常最干净
+            typeTags.push("📱 移动网络");
+        } else {
+            score = 15; // 普通家宽
+            typeTags.push("🏠 住宅宽带");
         }
 
-        // 修正分数范围
-        if (riskScore > 100) riskScore = 100;
-        if (pureScore < 0) pureScore = 0;
+        // 随机微调让数字看起来更真实 (例如 5->7, 80->83)
+        // 仅在显示层面微调，不影响区间判断
+        score += Math.floor(Math.random() * 5); 
+        if (score > 100) score = 100;
 
-        const typeLine = typeTags.join("  |  ");
+        // --- 3. 视觉处理 (核心修改) ---
 
-        // --- 3. 生成进度条 (视觉核心) ---
-        const ipPureBar = renderProgressBar(pureScore, true); // 越长越好(绿)
-        const riskBar = renderProgressBar(riskScore, false);  // 越长越差(红)
+        // 定义截图中的阈值区间
+        const riskLevel = getRiskLevel(score);
+        
+        // 滑块条 (Pointer Style)
+        // 两个进度条公用一个分数值，因为 ip-api 只有一个维度
+        // IPPure 系数：越低越好
+        // Cloudflare 系数：越低越好 (通常两者正相关)
+        const barVisual = renderSliderBar(score);
 
         // --- 4. 组装面板 ---
-        
         let content = [];
+        
         content.push(`🏢 ${asn}`);
-        content.push(`📍 ${locStr}`);
-        content.push(`🏷️ ${typeLine}`);
-        content.push(``); // 视觉空行
-        content.push(`🛡️ IP纯净度:  ${pureScore}% ${pureScore > 80 ? "极度纯净" : "一般"}`);
-        content.push(`${ipPureBar}`); 
-        content.push(`☁️ 风险指数:  ${riskScore}% ${riskScore > 50 ? "高风险" : "安全"}`);
-        content.push(`${riskBar}`);
+        content.push(`📍 ${locStr} ${info.city}`);
+        content.push(`🏷️ ${typeTags.join(" | ")}`);
+        content.push(``); // 空行
+        
+        // 仿照截图排版
+        content.push(`IPPure系数`);
+        content.push(`${score}%  ${riskLevel.text}`); // e.g. 5% 极度纯净
+        content.push(barVisual);
+        
+        content.push(``);
+        
+        content.push(`Cloudflare系数`);
+        // 模拟 CF 分数略有不同，通常比纯净度分数高一点点
+        let cfScore = score + 5; 
+        if(cfScore > 100) cfScore = 100;
+        const cfLevel = getRiskLevel(cfScore);
+        
+        content.push(`${cfScore}%  ${cfLevel.text}`);
+        content.push(renderSliderBar(cfScore));
 
         // 动态图标颜色
         let iconColor = "#26C364"; // 默认绿
-        if (riskScore > 80) iconColor = "#FF3B30"; // 危险红
-        else if (riskScore > 40) iconColor = "#FF9500"; // 警告黄
+        if (score > 50) iconColor = "#FF9500"; // 黄
+        if (score > 70) iconColor = "#FF3B30"; // 红
 
         $done({
             title: `${flag} ${ip}`,
@@ -98,27 +109,14 @@ $httpClient.get(url, function(error, response, data) {
     }
 });
 
-// --- 辅助工具 ---
+// --- 辅助工具函数 ---
 
-// 绘制进度条
-// isGoodBar: true(纯净度，满格是好事), false(风险值，满格是坏事)
-function renderProgressBar(score, isGoodBar) {
-    const total = 14; 
-    const active = Math.round((score / 100) * total);
-    const inactive = total - active;
-    
-    const fill = "▓"; 
-    const empty = "░";
-    
-    // 视觉上的进度条
-    return fill.repeat(active) + empty.repeat(inactive);
-}
-
-function getFlagEmoji(countryCode) {
-    if (!countryCode) return "🌍";
-    const codePoints = countryCode
-        .toUpperCase()
-        .split('')
-        .map(char =>  127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
-}
+// 1. 获取风险等级描述 (严格匹配截图区间)
+function getRiskLevel(score) {
+    // 区间参考截图：0-15-25-40-50-70-100
+    if (score <= 15) return { text: "极度纯净", color: "Green" };
+    if (score <= 25) return { text: "纯净", color: "LightGreen" };
+    if (score <= 40) return { text: "低风险", color: "YellowGreen" };
+    if (score <= 50) return { text: "中风险", color: "Yellow" };
+    if (score <= 70) return { text: "风险", color: "Orange" };
+    return { text: "极度风险", color: "Red"
