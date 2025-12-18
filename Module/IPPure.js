@@ -119,4 +119,41 @@ function getRiskLevel(score) {
     if (score <= 40) return { text: "低风险", color: "YellowGreen" };
     if (score <= 50) return { text: "中风险", color: "Yellow" };
     if (score <= 70) return { text: "风险", color: "Orange" };
-    return { text: "极度风险", color: "Red"
+    return { text: "极度风险", color: "Red" };
+}
+
+// 2. 绘制滑块进度条 (Pointer Style)
+// 样式： ———●——————————
+function renderSliderBar(score) {
+    const totalChars = 20; // 进度条总长度，越长越细腻
+    
+    // 计算滑块位置 (0 到 totalChars-1)
+    let percent = score / 100;
+    if (percent > 1) percent = 1;
+    if (percent < 0) percent = 0;
+    
+    const position = Math.round(percent * (totalChars - 1));
+    
+    const trackChar = "—"; // 轨道字符 (细线)
+    const thumbChar = "●"; // 滑块字符 (圆点)
+    
+    let bar = "";
+    for (let i = 0; i < totalChars; i++) {
+        if (i === position) {
+            bar += thumbChar;
+        } else {
+            bar += trackChar;
+        }
+    }
+    return bar;
+}
+
+// 3. 国旗 Emoji
+function getFlagEmoji(countryCode) {
+    if (!countryCode) return "🌍";
+    const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char =>  127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
+}
