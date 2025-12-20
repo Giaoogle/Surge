@@ -111,18 +111,33 @@ function getRiskLevel(s) {
     return { text: "极度风险", color: "purple" };
 }
 
-// 2. 绘制圆点 (10格标尺)
+// 2. 绘制圆点 (10格 - 月相高精版)
 function renderDots(score) {
-    const total = 10;
-    // 限制 score 范围 0-100
+    const width = 10; // 保持 10 格宽度
+    
     if (score > 100) score = 100;
     if (score < 0) score = 0;
+
+    // 将 0-100 映射到 0-40 (因为 10格 * 4个状态 = 40级精度)
+    const raw = (score / 100) * width * 4;
+    const rounded = Math.round(raw);
     
-    const active = Math.round((score / 100) * total);
-    const inactive = total - active;
+    const fullDots = Math.floor(rounded / 4); // 满格的数量
+    const remainder = rounded % 4;            // 余数 (决定最后一个点的状态)
     
-    // 实心圆代表风险值
-    return "●".repeat(active) + "○".repeat(inactive);
+    // 状态字符：空 -> 1/4 -> 1/2 -> 3/4 -> 满 (注意：满即 ●，这里处理余数)
+    const symbols = ["○", "◔", "◑", "◕"]; 
+    
+    let str = "●".repeat(fullDots);
+    
+    // 如果还没填满，处理中间那个“半满”的点
+    if (fullDots < width) {
+        str += symbols[remainder];
+        // 补齐剩下的空位
+        str += "○".repeat(width - fullDots - 1);
+    }
+    
+    return str;
 }
 
 // 3. 国旗
