@@ -71,10 +71,21 @@ $httpClient.get({ url: url, headers: headers }, function(error, response, data) 
         content.push(`${dots}`); // 标尺
 
         // 动态图标颜色
-        // 纯净(绿) -> 风险(红)
-        let iconColor = "#34C759"; // Green
-        if (score > 50) iconColor = "#FF9500"; // Orange
-        if (score > 70) iconColor = "#FF3B30"; // Red
+        // --- 2. 动态图标颜色逻辑 (6级划分) ---
+        let iconColor = "#FF3B30"; // 默认红色 (>70)
+
+        if (score <= 15) {
+            iconColor = "#1D7044"; // 深绿色 (极度纯净)
+        } else if (score <= 25) {
+            iconColor = "#34C759"; // 绿色 (纯净)
+        } else if (score <= 40) {
+            iconColor = "#A4E674"; // 浅绿色 (低风险)
+        } else if (score <= 50) {
+            iconColor = "#FFD60A"; // 黄色 (中风险)
+        } else if (score <= 70) {
+            iconColor = "#FF9500"; // 橙色 (风险)
+        } 
+        // 大于 70 保持默认红色 (极度风险)
 
         $done({
             title: "IP 深度检测",
