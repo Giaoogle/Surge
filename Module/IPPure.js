@@ -27,7 +27,7 @@ $httpClient.get({ url: url, headers: headers }, function(error, response, data) 
         const countryCode = info.countryCode || "UN";
         const region = info.regionCode || "";
         const city = info.city || "";
-        const locStr = `${getFlagEmoji(countryCode)} ${region}, ${city}`;
+        const locStr = `${getFlagEmoji(countryCode)} ${region} ${city}`;
 
         // 分数
         const score = info.fraudScore || 0;
