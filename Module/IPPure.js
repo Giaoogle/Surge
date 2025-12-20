@@ -113,15 +113,12 @@ function getRiskLevel(s) {
 
 // 5. 绘制线性滑轨 (20格，高雅风)
 function renderDots(score) {
-    const total = 20; // 足够长，精度高
+    const total = 10;
     if (score > 100) score = 100;
     if (score < 0) score = 0;
-    
     const active = Math.round((score / 100) * total);
     const inactive = total - active;
-    
-    // ━ (粗横线) 和 ─ (细横线)
-    return "━".repeat(active) + "─".repeat(inactive);
+    return "●".repeat(active) + "○".repeat(inactive);
 }
 
 // 3. 国旗
