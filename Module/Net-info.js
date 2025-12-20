@@ -1,6 +1,6 @@
 /*
  * Surge 网络详情面板 (优化版)
- * Based on @Nebulosa-Cat
+ * @Giaoogle
  */
 
 /**
