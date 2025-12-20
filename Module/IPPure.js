@@ -60,14 +60,14 @@ $httpClient.get({ url: url, headers: headers }, function(error, response, data) 
         let content = [];
         
         // 每一行都使用全角空格或普通空格微调对齐
-        content.push(`🌐 IP: ${ip}`);
-        content.push(`🏢 ISP: ${org}`);
-        content.push(`🆔 ASN: AS${asn}`);
-        content.push(`📍 位置: ${locStr}`);
-        content.push(`🏠 属性: ${attrStr}`);
-        content.push(`🏷️ 来源: ${sourceStr}`);
+        content.push(`IP: ${ip}`);
+        content.push(`ISP: ${org}`);
+        content.push(`ASN: AS${asn}`);
+        content.push(`位置: ${locStr}`);
+        content.push(`属性: ${attrStr}`);
+        content.push(`来源: ${sourceStr}`);
         content.push(``); // 空行分割，突出分数
-        content.push(`🛡️ 系数: ${score}%  ${level.text}`);
+        content.push(`IPPure系数: ${score}%  ${level.text}`);
         content.push(`${dots}`); // 标尺
 
         // 动态图标颜色
@@ -79,7 +79,7 @@ $httpClient.get({ url: url, headers: headers }, function(error, response, data) 
         $done({
             title: "IP 深度检测",
             content: content.join("\n"),
-            icon: "network.badge.shield.half.filled",
+            icon: "leaf.fill",
             "icon-color": iconColor
         });
 
