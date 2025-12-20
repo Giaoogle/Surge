@@ -34,7 +34,7 @@ FlushDNS = type=generic,timeout=10,script-path=https://raw.githubusercontent.com
 配置重载 = script-path=https://raw.githubusercontent.com/Giaoogle/Surge/main/Module/Profile-Reload.js,type=generic
 
 # 6.网路信息
-net-info-panel.js=script-path=https://raw.githubusercontent.com/getsomecat/GetSomeCats/Surge/modules/Panel/Network-Info/Moore/net-info-panel_CN.js,type=generic,timeout=30
+net-info-panel.js=script-path=https://raw.githubusercontent.com/Giaoogle/Surge/refs/heads/main/Module/Net-info.js,type=generic,timeout=30
 
 
 
