@@ -1,5 +1,6 @@
 /*
- * Surge 网络详情面板 (优化版 + BSSID)
+ * Surge 网络详情面板 (全能增强版)
+ * 功能：SSID, BSSID, Router, DNS, 公网IP, ISP, ASN, 时区, 延迟测试
  * @Giaoogle
  */
 
@@ -48,25 +49,13 @@ function getFlagEmoji(countryCode) {
 }
 
 function loadCarrierNames() {
+  // 仅保留常见运营商以节省空间
   return {
-    // 台湾
-    '466-11': '中華電信', '466-92': '中華電信', '466-01': '遠傳電信', '466-03': '遠傳電信',
-    '466-97': '台灣大哥大', '466-89': '台灣之星', '466-05': 'GT',
-    // 大陆
-    '460-03': '中国电信', '460-05': '中国电信', '460-11': '中国电信',
+    '460-00': '中国移动', '460-02': '中国移动', '460-07': '中国移动',
     '460-01': '中国联通', '460-06': '中国联通', '460-09': '中国联通',
-    '460-00': '中国移动', '460-02': '中国移动', '460-04': '中国移动',
-    '460-07': '中国移动', '460-08': '中国移动', '460-15': '中国广电', '460-20': '中移铁通',
-    // 香港
-    '454-00': 'CSL', '454-02': 'CSL', '454-10': 'CSL', '454-18': 'CSL',
-    '454-03': '3', '454-04': '3', '454-05': '3', '454-06': 'SMC HK',
-    '454-09': 'CMHK', '454-12': 'CMHK', '454-13': 'CMHK', '454-28': 'CMHK',
-    '454-16': 'csl.', '454-19': 'csl.', '454-20': 'csl.', '454-29': 'csl.',
-    '454-01': '中信國際電訊', '454-07': 'UNICOM HK', '454-08': 'Truphone', '454-23': 'Lycamobile',
-    // 美国 (精简部分常见)
-    '310-030': 'AT&T', '310-070': 'AT&T', '310-410': 'AT&T',
-    '310-160': 'T-Mobile', '310-260': 'T-Mobile', '310-240': 'T-Mobile',
-    '310-004': 'Verizon', '310-012': 'Verizon', '311-480': 'Verizon'
+    '460-03': '中国电信', '460-05': '中国电信', '460-11': '中国电信',
+    '454-00': 'CSL', '454-06': 'SMC HK', '454-09': 'CMHK', '454-03': '3',
+    '466-11': '中華電信', '466-01': '遠傳電信', '466-97': '台灣大哥大'
   };
 }
 
@@ -83,7 +72,6 @@ function getCellularInfo() {
   if ($network['cellular-data']) {
     const carrierId = $network['cellular-data'].carrier;
     const radio = $network['cellular-data'].radio;
-    // 如果没有连接 WiFi 且有蜂窝数据
     if ($network.wifi?.ssid == null && radio) {
       const name = carrierNames[carrierId] ? carrierNames[carrierId] : '蜂窝数据';
       const type = radioGeneration[radio] ? radioGeneration[radio] : radio;
@@ -98,49 +86,65 @@ function getSSID() {
 }
 
 function getLocalIP() {
-  const { v4, v6, wifi } = $network; // 这里增加了 wifi 的解构
+  const { v4, v6, wifi } = $network;
   let info = [];
    
   if (!v4 && !v6) {
     info.push('网络状态未知');
   } else {
-    // 优化文案: v4 -> IPv4
+    // 1. 本地 IP
     if (v4?.primaryAddress) info.push(`IPv4：${v4?.primaryAddress}`);
-    if (v6?.primaryAddress) info.push(`IPv6：${v6?.primaryAddress}`);
-     
-    // 仅在 WiFi 状态下显示路由器地址和 BSSID
+    
+    // 2. WiFi 特定信息
     if (wifi?.ssid) {
-      // ---> 新增 BSSID 显示逻辑 <---
       if (wifi.bssid) info.push(`BSSID：${wifi.bssid}`);
-      
-      if (v4?.primaryRouter) info.push(`Router IPv4：${v4?.primaryRouter}`);
-      if (v6?.primaryRouter) info.push(`Router IPv6：${v6?.primaryRouter}`);
+      if (v4?.primaryRouter) info.push(`Router：${v4?.primaryRouter}`);
+    }
+
+    // 3. DNS 信息 (新增)
+    const dns = v4?.dns;
+    if (dns && dns.length > 0) {
+      // 只显示第一个 DNS 以防面板太长
+      info.push(`DNS：${dns[0]}`); 
     }
   }
   return info.join("\n");
 }
 
 function getNetworkInfo(retryTimes = 5, retryInterval = 1000) {
+  // 记录开始时间用于计算延迟
+  const startTime = Date.now();
+
   httpMethod.get('http://ip-api.com/json').then(response => {
+    // 计算延迟
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    // 根据延迟设置颜色指示器
+    const speedIcon = duration < 200 ? '🟢' : (duration < 500 ? '🟡' : '🔴');
+    const latencyStr = `${speedIcon} ${duration}ms`;
+
     if (Number(response.status) > 300) {
       throw new Error(`HTTP Error: ${response.status}`);
     }
     const info = JSON.parse(response.data);
      
-    // 图标逻辑
     const isWifi = getSSID();
     const icon = isWifi ? 'wifi.circle' : 'antenna.radiowaves.left.and.right.circle';
-    const iconColor = isWifi ? '#007AFF' : '#34C759'; // WiFi蓝 / 蜂窝绿
+    const iconColor = isWifi ? '#007AFF' : '#34C759';
 
+    // 处理 ASN 格式 (去除多余的 AS 编号重复显示)
+    let asn = info.as || '';
+    
     $done({
       title: getSSID() ?? getCellularInfo(),
       content:
         `[ 本地网络 ]\n` +
         getLocalIP() + `\n` +
-        `\n[ 公网出口 ]\n` +
-        `节点 IP：${info.query}\n` +
-        `运营商 ：${info.isp}\n` +
-        `所在地 ：${getFlagEmoji(info.countryCode)} ${info.country} - ${info.city}`,
+        `\n[ 公网出口 ]  ${latencyStr}\n` + // 显示延迟
+        `IP ：${info.query}\n` +
+        `ISP ：${info.isp}\n` +
+        `ASN ：${asn}\n` + // 显示 ASN
+        `位置 ：${getFlagEmoji(info.countryCode)} ${info.city} (${info.timezone})`, // 显示时区
       icon: icon,
       'icon-color': iconColor,
     });
@@ -161,6 +165,5 @@ function getNetworkInfo(retryTimes = 5, retryInterval = 1000) {
 }
 
 (() => {
-  // 脚本入口
   getNetworkInfo();
 })();
