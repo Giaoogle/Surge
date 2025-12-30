@@ -1,6 +1,6 @@
 /*
- * Surge 网络详情面板 (全能延迟监测版)
- * 功能：SSID, BSSID, IPv4, IPv6, Router, DNS, 网关延迟, 公网延迟, ISP, ASN
+ * Surge 网络详情面板 (增强版)
+ * 增加功能：BSSID, 本地延迟, 公网延迟, DNS, ASN
  * @Giaoogle
  */
 
@@ -9,8 +9,13 @@
  */
 class httpMethod {
   static _httpRequestCallback(resolve, reject, error, response, data) {
-    if (error) { reject(error); } else { resolve(Object.assign(response, { data })); }
+    if (error) {
+      reject(error);
+    } else {
+      resolve(Object.assign(response, { data }));
+    }
   }
+
   static get(option = {}) {
     return new Promise((resolve, reject) => {
       $httpClient.get(option, (error, response, data) => {
@@ -20,105 +25,162 @@ class httpMethod {
   }
 }
 
+class loggerUtil {
+  constructor() {
+    this.id = Math.random().toString(36).slice(2, 8);
+  }
+  log(message) {
+    console.log(`[${this.id}] [ LOG ] ${message}`);
+  }
+  error(message) {
+    console.log(`[${this.id}] [ERROR] ${message}`);
+  }
+}
+
+var logger = new loggerUtil();
+
 function getFlagEmoji(countryCode) {
   if (!countryCode) return "🌍";
-  const codePoints = countryCode.toUpperCase().split('').map((char) => 127397 + char.charCodeAt());
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map((char) => 127397 + char.charCodeAt());
   return String.fromCodePoint(...codePoints);
 }
 
-function getCellularInfo() {
-  const radioGeneration = { 'GPRS': '2.5G', 'LTE': '4G', 'NRNSA': '5G', 'NR': '5G' };
-  const carrierNames = {
-    '460-00': '中国移动', '460-01': '中国联通', '460-03': '中国电信',
-    '454-00': 'CSL', '454-09': 'CMHK', '466-11': '中華電信'
+function loadCarrierNames() {
+  return {
+    // 台湾
+    '466-11': '中華電信', '466-92': '中華電信', '466-01': '遠傳電信', '466-03': '遠傳電信',
+    '466-97': '台灣大哥大', '466-89': '台灣之星', '466-05': 'GT',
+    // 大陆
+    '460-03': '中国电信', '460-05': '中国电信', '460-11': '中国电信',
+    '460-01': '中国联通', '460-06': '中国联通', '460-09': '中国联通',
+    '460-00': '中国移动', '460-02': '中国移动', '460-04': '中国移动',
+    '460-07': '中国移动', '460-08': '中国移动', '460-15': '中国广电', '460-20': '中移铁通',
+    // 香港
+    '454-00': 'CSL', '454-02': 'CSL', '454-10': 'CSL', '454-18': 'CSL',
+    '454-03': '3', '454-04': '3', '454-05': '3', '454-06': 'SMC HK',
+    '454-09': 'CMHK', '454-12': 'CMHK', '454-13': 'CMHK', '454-28': 'CMHK',
+    '454-16': 'csl.', '454-19': 'csl.', '454-20': 'csl.', '454-29': 'csl.',
+    '454-01': '中信國際電訊', '454-07': 'UNICOM HK', '454-08': 'Truphone', '454-23': 'Lycamobile',
+    // 美国 (精简部分常见)
+    '310-030': 'AT&T', '310-070': 'AT&T', '310-410': 'AT&T',
+    '310-160': 'T-Mobile', '310-260': 'T-Mobile', '310-240': 'T-Mobile',
+    '310-004': 'Verizon', '310-012': 'Verizon', '311-480': 'Verizon'
   };
+}
+
+function getCellularInfo() {
+  const radioGeneration = {
+    'GPRS': '2.5G', 'CDMA1x': '2.5G', 'EDGE': '2.75G',
+    'WCDMA': '3G', 'HSDPA': '3.5G', 'HSUPA': '3.75G',
+    'LTE': '4G', 'NRNSA': '5G', 'NR': '5G',
+  };
+
+  let cellularInfo = '';
+  const carrierNames = loadCarrierNames();
+  
   if ($network['cellular-data']) {
     const carrierId = $network['cellular-data'].carrier;
     const radio = $network['cellular-data'].radio;
-    if (!$network.wifi?.ssid && radio) {
-      const name = carrierNames[carrierId] || '蜂窝数据';
-      const type = radioGeneration[radio] || radio;
-      return `${name} | ${type}`;
+    if ($network.wifi?.ssid == null && radio) {
+      const name = carrierNames[carrierId] ? carrierNames[carrierId] : '蜂窝数据';
+      const type = radioGeneration[radio] ? radioGeneration[radio] : radio;
+      cellularInfo = `${name} | ${type}`;
     }
   }
-  return null;
+  return cellularInfo;
 }
 
-// 获取颜色图标
-function getLatencyIcon(ms) {
-  if (ms < 50) return '🟢';
-  if (ms < 150) return '🟡';
-  return '🔴';
+function getSSID() {
+  return $network.wifi?.ssid;
 }
 
-async function getNetworkInfo() {
-  const { v4, v6, wifi, dns: globalDns } = $network;
-  const isWifi = wifi?.ssid;
-  const routerIp = v4?.primaryRouter;
+// 延迟图标辅助函数
+function getLatencyIcon(ms, isLocal) {
+  const threshold = isLocal ? 20 : 200; // 本地网关超过20ms算慢，公网超过200ms算慢
+  return ms < threshold ? "🟢" : (ms < threshold * 2 ? "🟡" : "🔴");
+}
+
+function getLocalIP() {
+  const { v4, v6, wifi, dns } = $network;
+  let info = [];
   
-  // 准备本地延迟测试
+  if (!v4 && !v6) {
+    info.push('网络状态未知');
+  } else {
+    if (v4?.primaryAddress) info.push(`IPv4：${v4?.primaryAddress}`);
+    if (v6?.primaryAddress) info.push(`IPv6：${v6?.primaryAddress}`);
+    
+    if (getSSID()) {
+      if (wifi?.bssid) info.push(`BSSID：${wifi.bssid}`); // 新增 BSSID
+      if (v4?.primaryRouter) info.push(`Router IPv4：${v4?.primaryRouter}`);
+      if (v6?.primaryRouter) info.push(`Router IPv6：${v6?.primaryRouter}`);
+    }
+
+    // 新增 DNS 显示
+    let dnsServers = v4?.dns || dns || [];
+    if (dnsServers.length > 0) {
+      info.push(`DNS：${dnsServers[0]}`);
+    }
+  }
+  return info.join("\n");
+}
+
+async function getNetworkInfo(retryTimes = 5, retryInterval = 1000) {
+  const startPublic = Date.now();
+  const routerIp = $network.v4?.primaryRouter;
   let localLatencyStr = "";
-  if (isWifi && routerIp) {
+
+  // 1. 探测本地网关延迟
+  if (getSSID() && routerIp) {
     const startLocal = Date.now();
     try {
-      // 尝试访问网关，设置超时为 500ms
-      await httpMethod.get({ url: `http://${routerIp}`, timeout: 500 });
-      const localDuration = Date.now() - startLocal;
-      localLatencyStr = `${getLatencyIcon(localDuration)} ${localDuration}ms`;
-    } catch (e) {
-      // 如果网关拒绝连接(正常现象)，依然可以计算时间差
-      const localDuration = Date.now() - startLocal;
-      if (localDuration < 500) {
-        localLatencyStr = `${getLatencyIcon(localDuration)} ${localDuration}ms`;
-      } else {
-        localLatencyStr = "🔴 Timeout";
-      }
-    }
+      await $httpClient.get({ url: `http://${routerIp}`, timeout: 0.5 });
+    } catch (e) {}
+    const localMs = Date.now() - startLocal;
+    localLatencyStr = `${getLatencyIcon(localMs, true)} ${localMs}ms`;
   }
 
-  // 准备公网延迟和信息测试
-  const startPublic = Date.now();
+  // 2. 获取公网信息
   httpMethod.get('http://ip-api.com/json?fields=66846719').then(response => {
-    const publicDuration = Date.now() - startPublic;
+    const publicMs = Date.now() - startPublic;
+    if (Number(response.status) > 300) {
+      throw new Error(`HTTP Error: ${response.status}`);
+    }
     const info = JSON.parse(response.data);
     
-    // 组装本地网络详情
-    let localInfo = [];
-    if (v4?.primaryAddress) localInfo.push(`IPv4：${v4.primaryAddress}`);
-    if (v6?.primaryAddress) localInfo.push(`IPv6：${v6.primaryAddress}`);
-    if (isWifi) {
-      if (wifi.bssid) localInfo.push(`BSSID：${wifi.bssid}`);
-      if (routerIp) localInfo.push(`Router：${routerIp}`);
-    }
-    
-    // DNS 逻辑
-    let dnsServers = v4?.dns || globalDns || [];
-    if (dnsServers.length > 0) {
-      const uniqueDns = [...new Set(dnsServers)];
-      localInfo.push(`DNS：${uniqueDns[0]}${uniqueDns.length > 1 ? ' ...' : ''}`);
-    }
+    const isWifi = getSSID();
+    const icon = isWifi ? 'wifi.circle' : 'antenna.radiowaves.left.and.right.circle';
+    const iconColor = isWifi ? '#007AFF' : '#34C759';
 
     $done({
-      title: isWifi ?? getCellularInfo() ?? "网络详情",
+      title: getSSID() ?? getCellularInfo(),
       content:
         `[ 本地网络 ]  ${localLatencyStr}\n` +
-        localInfo.join("\n") + `\n` +
-        `\n[ 公网出口 ]  ${getLatencyIcon(publicDuration)} ${publicDuration}ms\n` +
-        `IP ：${info.query}\n` +
-        `ISP ：${info.isp}\n` +
-        `ASN ：${info.as || '未知'}\n` +
-        `位置 ：${getFlagEmoji(info.countryCode)} ${info.country} · ${info.city}`,
-      icon: isWifi ? 'wifi.circle' : 'antenna.radiowaves.left.and.right.circle',
-      'icon-color': isWifi ? '#007AFF' : '#34C759',
+        getLocalIP() + `\n` +
+        `\n[ 公网出口 ]  ${getLatencyIcon(publicMs, false)} ${publicMs}ms\n` +
+        `节点 IP：${info.query}\n` +
+        `运营商 ：${info.isp}\n` +
+        `ASN    ：${info.as ? info.as.split(' ')[0] : '未知'}\n` + // 新增 ASN
+        `所在地 ：${getFlagEmoji(info.countryCode)} ${info.country} - ${info.city}`,
+      icon: icon,
+      'icon-color': iconColor,
     });
 
   }).catch(error => {
-    $done({
-      title: '获取失败',
-      content: '请检查网络或代理设置\n' + error,
-      icon: 'exclamationmark.triangle',
-      'icon-color': '#FF3B30',
-    });
+    if (retryTimes > 0) {
+      logger.log(`Retry... (${retryTimes})`);
+      setTimeout(() => getNetworkInfo(--retryTimes, retryInterval), retryInterval);
+    } else {
+      $done({
+        title: '获取失败',
+        content: '无法连接到检测服务器\n请检查网络连接',
+        icon: 'exclamationmark.triangle',
+        'icon-color': '#FF3B30',
+      });
+    }
   });
 }
 
