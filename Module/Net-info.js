@@ -1,5 +1,5 @@
 /*
- * Surge 网络详情面板 (优化版)
+ * Surge 网络详情面板 (优化版 + BSSID)
  * @Giaoogle
  */
 
@@ -79,7 +79,7 @@ function getCellularInfo() {
 
   let cellularInfo = '';
   const carrierNames = loadCarrierNames();
-  
+   
   if ($network['cellular-data']) {
     const carrierId = $network['cellular-data'].carrier;
     const radio = $network['cellular-data'].radio;
@@ -98,18 +98,21 @@ function getSSID() {
 }
 
 function getLocalIP() {
-  const { v4, v6 } = $network;
+  const { v4, v6, wifi } = $network; // 这里增加了 wifi 的解构
   let info = [];
-  
+   
   if (!v4 && !v6) {
     info.push('网络状态未知');
   } else {
     // 优化文案: v4 -> IPv4
     if (v4?.primaryAddress) info.push(`IPv4：${v4?.primaryAddress}`);
     if (v6?.primaryAddress) info.push(`IPv6：${v6?.primaryAddress}`);
-    
-    // 仅在 WiFi 状态下显示路由器地址
-    if (getSSID()) {
+     
+    // 仅在 WiFi 状态下显示路由器地址和 BSSID
+    if (wifi?.ssid) {
+      // ---> 新增 BSSID 显示逻辑 <---
+      if (wifi.bssid) info.push(`BSSID：${wifi.bssid}`);
+      
       if (v4?.primaryRouter) info.push(`Router IPv4：${v4?.primaryRouter}`);
       if (v6?.primaryRouter) info.push(`Router IPv6：${v6?.primaryRouter}`);
     }
@@ -123,7 +126,7 @@ function getNetworkInfo(retryTimes = 5, retryInterval = 1000) {
       throw new Error(`HTTP Error: ${response.status}`);
     }
     const info = JSON.parse(response.data);
-    
+     
     // 图标逻辑
     const isWifi = getSSID();
     const icon = isWifi ? 'wifi.circle' : 'antenna.radiowaves.left.and.right.circle';
