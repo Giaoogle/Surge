@@ -71,46 +71,50 @@ function loadCarrierNames() {
   };
 }
 
-function getSSID() {
-  return $network.wifi?.ssid;
-}
-
-/**
- * 仅输出 4G / 5G（低于 4G 不输出）
- * 修复不同系统/运营商返回 radio 字段不一致导致 5G 识别失败的问题
- */
-function normalizeRadioTo4G5G(radioRaw) {
-  if (!radioRaw) return "";
-
-  const r = String(radioRaw).toUpperCase().replace(/\s+/g, "");
-
-  // 5G 常见：NR / NRNSA / NRSA / 5G
-  if (r.includes("NR") || r.includes("5G")) return "5G";
-
-  // 4G 常见：LTE / LTEA / 4G
-  if (r.includes("LTE") || r.includes("4G")) return "4G";
-
-  // 4G 以下不显示
-  return "";
-}
-
 function getCellularInfo() {
+  let cellularInfo = '';
   const carrierNames = loadCarrierNames();
-  const cell = $network['cellular-data'];
-  if (!cell) return "";
 
-  // 仅在非 Wi-Fi 时展示蜂窝信息
-  const isWifi = !!getSSID();
-  if (isWifi) return "";
+  const cell = $network['cellular-data'];
+  if (!cell) return '';
 
   const carrierId = cell.carrier;
   const radio = cell.radio;
 
-  const type = normalizeRadioTo4G5G(radio);
-  if (!type) return ""; // 4G 以下不显示
+  // 仅在非 Wi-Fi 时展示蜂窝信息（保持你原逻辑）
+  if ($network.wifi?.ssid != null) return '';
+
+  // 只显示 4G/5G：增强 5G 识别（兼容不同字段/返回差异）
+  const radioStr = (radio ?? '').toString().toUpperCase();
+  const cellDump = JSON.stringify(cell).toUpperCase();
+
+  let type = '';
+  if (
+    radioStr.includes('NR') || radioStr.includes('5G') ||
+    cellDump.includes('"NR"') || cellDump.includes('NRNSA') ||
+    cellDump.includes('NRSA') || cellDump.includes('"5G"')
+  ) {
+    type = '5G';
+  } else if (radioStr.includes('LTE') || radioStr.includes('4G')) {
+    type = '4G';
+  } else {
+    // 4G 以下不显示
+    return '';
+  }
 
   const name = carrierNames[carrierId] ? carrierNames[carrierId] : '蜂窝数据';
-  return `${name} | ${type}`;
+  cellularInfo = `${name} | ${type}`;
+  return cellularInfo;
+}
+
+function getSSID() {
+  return $network.wifi?.ssid;
+}
+
+// 延迟图标辅助函数（保留但不再使用）
+function getLatencyIcon(ms, isLocal) {
+  const threshold = isLocal ? 20 : 200;
+  return ms < threshold ? "🟢" : (ms < threshold * 2 ? "🟡" : "🔴");
 }
 
 function getLocalIP() {
@@ -124,12 +128,12 @@ function getLocalIP() {
     if (v6?.primaryAddress) info.push(`IPv6：${v6?.primaryAddress}`);
 
     if (getSSID()) {
-      if (wifi?.bssid) info.push(`BSSID：${wifi.bssid}`);
+      if (wifi?.bssid) info.push(`BSSID：${wifi.bssid}`); // 新增 BSSID
       if (v4?.primaryRouter) info.push(`Router IPv4：${v4?.primaryRouter}`);
       if (v6?.primaryRouter) info.push(`Router IPv6：${v6?.primaryRouter}`);
     }
 
-    // DNS
+    // 新增 DNS 显示
     let dnsServers = v4?.dns || dns || [];
     if (dnsServers.length > 0) {
       info.push(`DNS：${dnsServers[0]}`);
@@ -143,7 +147,7 @@ async function getNetworkInfo(retryTimes = 5, retryInterval = 1000) {
   const routerIp = $network.v4?.primaryRouter;
   let localLatencyStr = "";
 
-  // 1) 本地网关延迟（去掉圆形符号，仅显示 ms）
+  // 1. 探测本地网关延迟（去掉圆形符号，仅显示 ms）
   if (getSSID() && routerIp) {
     const startLocal = Date.now();
     try {
@@ -153,30 +157,27 @@ async function getNetworkInfo(retryTimes = 5, retryInterval = 1000) {
     localLatencyStr = `${localMs}ms`;
   }
 
-  // 2) 公网信息
+  // 2. 获取公网信息
   httpMethod.get('http://ip-api.com/json?fields=66846719').then(response => {
     const publicMs = Date.now() - startPublic;
-
     if (Number(response.status) > 300) {
       throw new Error(`HTTP Error: ${response.status}`);
     }
     const info = JSON.parse(response.data);
 
-    const isWifi = !!getSSID();
+    const isWifi = getSSID();
     const icon = isWifi ? 'wifi.circle' : 'antenna.radiowaves.left.and.right.circle';
     const iconColor = isWifi ? '#007AFF' : '#34C759';
 
-    const title = getSSID() ?? getCellularInfo() ?? '网络';
-
     $done({
-      title,
+      title: getSSID() ?? getCellularInfo(),
       content:
         `[ 本地网络 ]  ${localLatencyStr}\n` +
         getLocalIP() + `\n` +
         `\n[ 公网出口 ]  ${publicMs}ms\n` +
         `节点 IP：${info.query}\n` +
         `运营商 ：${info.isp}\n` +
-        `ASN    ：${info.as ? info.as.split(' ')[0] : '未知'}\n` +
+        `ASN    ：${info.as ? info.as.split(' ')[0] : '未知'}\n` + // 新增 ASN
         `所在地 ：${getFlagEmoji(info.countryCode)} ${info.country} - ${info.city}`,
       icon: icon,
       'icon-color': iconColor,
