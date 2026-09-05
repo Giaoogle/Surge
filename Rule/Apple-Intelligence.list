@@ -1,24 +1,43 @@
 # NAME: Apple-Intelligence
 # AUTHOR: Giaohub
-# REPO: https://github.com/Giaoogle/Surge/edit/main/Rule/Apple-Intelligence.list
-# UPDATED: 2025-01-08 15:20:18
-# DOMAIN: 3
+# REPO: https://github.com/Giaoogle/Surge/blob/main/Rule/Apple-Intelligence.list
+# UPDATED: 2026-09-05
+# DOMAIN: 10
 # DOMAIN-SUFFIX: 2
-# TOTAL:5
+# TOTAL: 12
+#
+# SOURCE: https://support.apple.com/en-us/101555
+# Surge RULE-SET: policy is supplied by the calling profile.
+# Place before broader Apple/iCloud/DIRECT rules in the calling profile.
+# Routing rules alone do not determine Apple Intelligence availability.
 
-DOMAIN-SUFFIX,guzzoni.apple.com
-DOMAIN-SUFFIX,aaplimg.com
-DOMAIN,seed.siri.apple.com
+# Apple-documented: Private Cloud Compute
+DOMAIN,apple-relay.cloudflare.com
+DOMAIN,apple-relay.fastly-edge.com
+DOMAIN,cp4.cloudflare.com
+
+# Apple-documented: Apple Intelligence Extensions
 DOMAIN,apple-relay.apple.com
+
+# Apple-documented: Siri, dictation and Search
+# Preserve the existing guzzoni subdomain coverage for compatibility.
+DOMAIN-SUFFIX,guzzoni.apple.com
+DOMAIN-SUFFIX,smoot.apple.com
+
+# Existing compatibility entries retained; not all are AI-specific.
+# These are not asserted to be required AI endpoints by the source above.
+DOMAIN,seed.siri.apple.com
+DOMAIN,apple-relay.mask.apple-dns.net
+
+# Shared services: Apple documents mask-api as iCloud Private Relay,
+# and gateway as CloudKit content. Retained to preserve existing routing.
 DOMAIN,mask-api.icloud.com
 DOMAIN,gateway.icloud.com
-DOMAIN,mask-api.icloud.com
+
+# Existing location/configuration entries; AI necessity is unverified.
 DOMAIN,configuration.ls.apple.com
-DOMAIN,guzzoni.smoot.apple.com
-DOMAIN,cp4.cloudflare.com
-DOMAIN,apple-relay.fastly-edge.com
-DOMAIN,apple-relay.cloudflare.com
-DOMAIN-SUFFIX,smoot.apple.com
-DOMAIN,apple-relay.mask.apple-dns.net
 DOMAIN,gspe1-ssl.ls.apple.com
- 
+
+# Optional legacy broad match, disabled to limit unrelated traffic.
+# Re-enable only if request logs demonstrate it is needed.
+# DOMAIN-SUFFIX,aaplimg.com
